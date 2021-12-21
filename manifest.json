@@ -1,0 +1,43 @@
+{
+  "name": "Manga JS Translator",
+  "version": "1.0",
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' 'unsafe-eval' blob:; object-src 'self'",
+  "permissions": [
+    "tabs",
+    "storage",
+    "webNavigation",
+    "<all_urls>"
+  ],
+  "background": {
+    "page": "background.html",
+    "persistent": true
+  },
+  "sandbox": {
+    "pages": [
+      "sandbox.html"
+    ],
+    "content_security_policy": "sandbox allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self'; worker-src 'self' blob:;"
+  },
+  "content_scripts": [
+    {
+    "matches": ["*://*/*"],
+    "include_globs": ["https://exhentai.org/s/*","https://e-hentai.org/s/*","https://nhentai.net/g/*/*/*"],
+    "js": ["js/content_script.js"],
+    "run_at": "document_end"
+    },
+    {
+      "matches": ["https://www.bing.com/translator/*"],
+      "js": ["js/translate.js"],
+      "all_frames": true,
+      "run_at": "document_end"
+      }
+  ],
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    "js/*.js",
+    "traineddata/*.traineddata.gz"
+  ]  
+}

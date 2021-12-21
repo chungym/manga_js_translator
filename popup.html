@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+Copyright 2019 Google LLC.
+SPDX-License-Identifier: Apache-2.0
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="js/popup.js"></script>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h2 style="text-align: center;">Manga JS Translator</h2>
+  
+  <div class="sliderWrapper">
+    <div>Load Workers&nbsp;&nbsp;</div>
+    <label class="switch">
+      <input id ="load_button" type="checkbox">
+      <span class="slider round"></span>
+    </label>
+    <div class="checkmark_container">
+      <span class="checkmark" id="check" style="display: none;">
+        <div class="checkmark_circle"></div>
+        <div class="checkmark_stem"></div>
+        <div class="checkmark_kick"></div>
+      </span>
+    </div>
+  </div>
+
+  <div class="sliderWrapper">
+    <div>Translate to&nbsp;&nbsp;</div>
+    <select id="langs">
+      <option value="yue">Cantonese</option>
+      <option value="zh-Hans">Chinese Simplified </option>
+      <option value="zh-Hant">Chinese Traditional</option>
+      <option value="en" selected>English</option>
+    </select>
+  </div>
+
+</body>
+</html>
