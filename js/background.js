@@ -4,6 +4,7 @@ console.log("bg script");
 var scheduler;
 const { createWorker, createScheduler } = Tesseract;
 
+var loader_ready = false;
 
 chrome.runtime.onInstalled.addListener(async () => {
 
@@ -42,7 +43,10 @@ function handleMessage(message, sender, sendResponse) {
       break
 
     case "BG_fetch":
-      fetchImg(message.data, sender.tab.id);
+      if (loader_ready)
+      {
+        fetchImg(message.data, sender.tab.id);
+      }
       break
 
     case "BG_recognize_bubble":
@@ -71,9 +75,9 @@ function loadWorkers(){
 
   option = {
     workerPath: 'js/worker.min.js',
-    langPath: 'traineddata',
+    langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
     corePath: 'js/tesseract-core.wasm.js',
-    cacheMethod: 'none',
+    cacheMethod: 'write',
     // CRITICAL (Content Security Policy): workerBlobURL must be set to false
     // The page's settings blocked the loading of a resource at blob:moz-extension:// .../... ("script-src").
     // Check: spawnWorker.js
@@ -110,6 +114,7 @@ function loadWorkers(){
     }
 
     await chrome.storage.local.set({load_busy: false});
+    loader_ready = true;
     console.log('worker loaded');
 
   })();
@@ -119,6 +124,7 @@ function loadWorkers(){
 
 function terminateWorkers(){
 
+  loader_ready = false;
   (async () => {
 
   await chrome.storage.local.set({load_busy: true});

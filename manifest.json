@@ -2,7 +2,7 @@
   "name": "Manga JS Translator",
   "version": "1.0",
   "manifest_version": 2,
-  "content_security_policy": "script-src 'self' 'unsafe-eval' blob:; object-src 'self'",
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://docs.opencv.org blob:; object-src 'self'",
   "permissions": [
     "tabs",
     "storage",
