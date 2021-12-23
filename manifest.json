@@ -7,7 +7,9 @@
     "tabs",
     "storage",
     "webNavigation",
-    "<all_urls>"
+    "webRequest",
+    "webRequestBlocking",
+    "https://www.deepl.com/*"
   ],
   "background": {
     "page": "background.html",
@@ -31,7 +33,13 @@
       "js": ["js/translate.js"],
       "all_frames": true,
       "run_at": "document_end"
-      }
+    },
+    {
+      "matches": ["https://www.deepl.com/translator*"],
+      "js": ["js/async.min.js", "js/data.min.js", "js/data.cn2t.min.js", "js/bundle-browser.min.js", "js/translate_deepl.js"],
+      "all_frames": true,
+      "run_at": "document_end"
+    }
   ],
   "browser_action": {
     "default_popup": "popup.html"

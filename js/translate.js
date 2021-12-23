@@ -31,7 +31,7 @@ async function postData(url = '', text, to, token, key) {
 
 if (window.self !== window.top){
 
-   console.log("translate script");
+   console.log("Bing translate script");
 
    count = 1;
 

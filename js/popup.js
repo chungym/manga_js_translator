@@ -3,9 +3,15 @@ window.onload = function () {
     var load_button = document.getElementById('load_button');
     var lang_select = document.getElementById('langs');
     var check_mark = document.getElementById('check');
+    var trans_engine_select = document.getElementById('translators');
 
     chrome.storage.local.get(['lang_select'], function(result) {
         lang_select.value = result.lang_select;
+    });
+
+
+    chrome.storage.local.get(['translator_select'], function(result) {
+        trans_engine_select.value = result.translator_select;
     });
 
 
@@ -56,5 +62,22 @@ window.onload = function () {
             console.log('Lang is set to ' + value);
         });
     }
+
+
+    trans_engine_select.onchange = changeTranslator;
+
+    function changeTranslator(e){  
+        var value = e.target.value;  
+
+        chrome.storage.local.set({"translator_select": value}, function() {
+        });
+        
+
+        chrome.runtime.sendMessage({ method: "BG_change_translator", data: value});
+    }
+
+
+
+    
 
 }

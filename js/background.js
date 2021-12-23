@@ -5,15 +5,26 @@ var scheduler;
 const { createWorker, createScheduler } = Tesseract;
 
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.storage.local.set({load_button: false}, function(){});
+chrome.storage.local.set({load_busy: false}, function(){});
+chrome.storage.local.set({lang_select: 'en'}, function(){});
+chrome.storage.local.set({translator_select: 'deepl'}, function(){});
 
-  chrome.storage.local.set({load_button: false}, function(){});
-  chrome.storage.local.set({load_busy: false}, function(){});
-  chrome.storage.local.set({lang_select: 'en'}, function(){});
-  
-});
-
-
+chrome.webRequest.onHeadersReceived.addListener(info => {
+  const headers = info.responseHeaders; // original headers
+  for (let i=headers.length-1; i>=0; --i) {
+      let header = headers[i].name.toLowerCase();
+      if (header === "content-security-policy") { // csp header is found
+          // modifying frame-ancestors; this implies that the directive is already present
+          headers[i].value = headers[i].value.replace("frame-ancestors", "frame-ancestors chrome-extension://*");
+      }
+  }
+  // return modified headers
+  return {responseHeaders: headers};
+}, {
+  urls: [ "https://www.deepl.com/*" ], // match all pages
+  types: [ "sub_frame" ] // for framing only
+}, ["blocking", "responseHeaders"]);
 
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabInfo) {
@@ -59,9 +70,25 @@ function handleMessage(message, sender, sendResponse) {
       chrome.tabs.sendMessage(message.tabID, message);
       break
 
-    case "BG_kOptions":
+    case "BG_change_translator":
+      if (message.data == 'deepl')
+      {
+        document.getElementById('translate_frame').src = "https://www.deepl.com/translator";
+      }
+      else if (message.data == 'bing')
+      {
+        document.getElementById('translate_frame').src = "https://www.bing.com/translator";
+      }
+      break
+
+    case "BG_change_deepl_lang":
+      document.getElementById('translate_frame').src = "https://www.deepl.com/translator#ja/"+message.data+"/";
+      break
+
+    case "BG_Options":
       chrome.runtime.openOptionsPage()
       break
+     
   }
 }
 
@@ -91,7 +118,7 @@ function loadWorkers(){
 
     // reload iframe, because the page may timeout
     if (document.getElementById('translate_frame').src == ""){
-      document.getElementById('translate_frame').src = "https://www.bing.com/translator/";
+      document.getElementById('translate_frame').src = "https://www.deepl.com/translator#ja/en/";
     }
     else
     {
@@ -105,6 +132,7 @@ function loadWorkers(){
       await w.initialize('jpn_vert');
       await w.setParameters({
         tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK_VERT_TEXT,
+        tessedit_ocr_engine_mode: Tesseract.OEM.OEM_LSTM_ONLY
       });
       await scheduler.addWorker(w);
     }
@@ -224,33 +252,40 @@ function extractImg_bubble(dataURL, tabID, url){
     
     let M = cv.Mat.ones(2, 2, cv.CV_8U);
     let M2 = cv.Mat.ones(5, 5, cv.CV_8U);
+    let M3 = cv.Mat.ones(Math.round(src.cols/128), Math.round(src.cols/128), cv.CV_8U);
     let anchor = new cv.Point(-1, -1);
-    //cv.morphologyEx(src, inter, cv.MORPH_OPEN, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
     cv.erode(bw, inter, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+    cv.morphologyEx(bw, contours_large, cv.MORPH_OPEN, M3, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
     //cv.dilate(inter, inter, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
 
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
-    cv.findContours(inter, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
+    cv.findContours(contours_large, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
     
     
     //draw back large contours to original image
     // to close large contours
 
+    let convex_hulls = new cv.MatVector();
     for (let i = 0; i < contours.size(); ++i) {
+      
       if (hierarchy.intPtr(0,i)[2] !=-1){
     
-        let perimeter = cv.arcLength(contours.get(i), true);
-        if ( perimeter >= (src.rows + src.cols)*0.10){
+        let tmp = new cv.Mat();
+        // You can try more different parameters
+        cv.convexHull(contours.get(i), tmp, false, true);
 
-          cv.drawContours(contours_large , contours, i, new cv.Scalar(0, 0, 0), 1, cv.LINE_8, hierarchy, 0, new cv.Point(0,0));
-    
+        let perimeter = cv.arcLength(tmp, true);
+        if ( perimeter >= (src.rows + src.cols)*0.10){
+          convex_hulls.push_back(tmp);   
         }
-      }
+
+      }   
     }
-    cv.erode(contours_large, contours_large, M2, anchor, 2, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-    cv.dilate(contours_large, contours_large, M2, anchor, 2, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-    cv.bitwise_and(inter, contours_large, inter);
+    cv.drawContours(inter , convex_hulls, -1, new cv.Scalar(0, 0, 0), 2, cv.LINE_4, hierarchy = new cv.Mat(), maxLevel = cv.INT_MAX, offset = new cv.Point(0,0));        
+    cv.drawContours(inter , contours, -1, new cv.Scalar(255, 255, 255), -1, cv.LINE_8, hierarchy = new cv.Mat(), maxLevel = cv.INT_MAX, offset = new cv.Point(0,0));   
+    cv.erode(inter, inter, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+    convex_hulls.delete();
 
 
     cv.findContours(inter, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
@@ -310,7 +345,7 @@ function extractImg_bubble(dataURL, tabID, url){
     
               let color = new cv.Scalar(255, 255, 255);
 
-              cv.drawContours(mask , contours, i, color, 1, cv.LINE_8, hierarchy, 0, new cv.Point(-1,-1));
+              cv.drawContours(mask , contours, i, color, 1, cv.LINE_8, hierarchy, 0, new cv.Point(0,0));
 
               if (debug_plot){
               
@@ -345,6 +380,10 @@ function extractImg_bubble(dataURL, tabID, url){
           let roi_mask_inv = new cv.Mat();
           let color = new cv.Scalar(255, 255, 255);
           cv.drawContours(roi_mask , bubbleContours, i, color, -1, cv.LINE_8, hierarchy, 0, new cv.Point(-rect.x,-rect.y));
+
+          // draw a black border, in case the contour is the same as its bounding rect
+          cv.rectangle(roi_mask, new cv.Point(0,0), new cv.Point(rect.width, rect.height), new cv.Scalar(0, 0, 0), 2, cv.LINE_4, 0);
+
           cv.erode(roi_mask, roi_mask, M2, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
           cv.bitwise_not(roi_mask, roi_mask_inv);
 
@@ -408,7 +447,7 @@ function extractImg_bubble(dataURL, tabID, url){
     }
 
     src.delete(); bw.delete(); contours_large.delete(); mask.delete(); inter.delete(); dst.delete(); 
-    M.delete(); M2.delete(); 
+    M.delete(); M2.delete(); M3.delete(); 
     contours.delete(); bubbleContours.delete(); hierarchy.delete();
     inCanvas.getContext('2d').clearRect(0, 0, inCanvas.width, inCanvas.height);
     outCanvas.getContext('2d').clearRect(0, 0, outCanvas.width, outCanvas.height);
