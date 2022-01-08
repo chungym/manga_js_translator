@@ -29,9 +29,9 @@ You probably hit usage limits of translator, go to https://www.bing.com/translat
 ### License
 This plugin is licensed under GPL-3.0 License.
 
-Some third-party dependencies included may be licensed under different terms:
-Tesseract.js: https://tesseract.projectnaptha.com/
-OpenCV: https://opencv.org/
-Async: https://caolan.github.io/async/
-OpenCC-js: https://github.com/nk2028/opencc-js
-Enhancing jpn_vert.traineddata: https://github.com/zodiac3539/jpn_vert
+Some third-party dependencies included may be licensed under different terms: 
+Tesseract.js: https://tesseract.projectnaptha.com/ 
+OpenCV: https://opencv.org/ 
+Async: https://caolan.github.io/async/ 
+OpenCC-js: https://github.com/nk2028/opencc-js 
+Enhancing jpn_vert.traineddata: https://github.com/zodiac3539/jpn_vert 
