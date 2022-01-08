@@ -82,6 +82,11 @@ if (window.self !== window.top){
 
         if (message.method == 'cs_translate'){
 
+            if (countMatches(message.text, /[一-龠ぁ-ゔァ-ヴー々〆〤]/gu) <= 1 ){ return ;}
+
+            message.text = message.text.replace(/[|｜]/g,'─');
+            message.text = message.text.replace(/︙/g,'…');
+
             chrome.storage.local.get(['lang_select'], function(result) {
 
                 postData(url, message.text.replace(/\n/g,''), result.lang_select, token, key)

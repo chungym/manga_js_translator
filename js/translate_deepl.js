@@ -101,7 +101,7 @@ if (window.self !== window.top){
          
         var beforeText = outputTextArea.innerHTML;
 
-        simulateTextInput(task.message.text.replace(/\n/g,''));
+        simulateTextInput(task.message.text.replace(/\n/g,' '));
 
         const remaining = queue.length();
 
@@ -135,7 +135,7 @@ if (window.self !== window.top){
                 completed(null, {task, remaining});
             }
 
-            else if (time_elapsed > 5000)
+            else if (time_elapsed > 10000)
             {
                 clearInterval(id);
                 completed("timeout", {task, remaining});
@@ -155,12 +155,18 @@ if (window.self !== window.top){
 
             if (message.method == 'cs_translate'){
 
-                chrome.storage.local.get(['lang_select'], function(result) {
 
+                if (countMatches(message.text, /[一-龠ぁ-ゔァ-ヴー々〆〤]/gu) <= 1 ){ return ;}
+
+                message.text = message.text.replace(/[|｜]/g,'─');
+                message.text = message.text.replace(/︙/g,'…');
+
+
+                chrome.storage.local.get(['lang_select'], function(result) {
 
                 queue.push({message: message, toLang: result.lang_select}, (error, {task, remaining})=>{
                     if(error){
-                     console.log('An error occurred while processing task ${task.message.text}');
+                     console.log('An error occurred while processing task '+task.message.text);
                     }else {
                      //console.log('Finished processing task ${task}. ${remaining} tasks remaining');
                    }

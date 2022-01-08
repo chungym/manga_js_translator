@@ -4,6 +4,7 @@ window.onload = function () {
     var lang_select = document.getElementById('langs');
     var check_mark = document.getElementById('check');
     var trans_engine_select = document.getElementById('translators');
+    var extraction_select = document.getElementById('extraction');
 
     chrome.storage.local.get(['lang_select'], function(result) {
         lang_select.value = result.lang_select;
@@ -12,6 +13,11 @@ window.onload = function () {
 
     chrome.storage.local.get(['translator_select'], function(result) {
         trans_engine_select.value = result.translator_select;
+    });
+
+
+    chrome.storage.local.get(['extraction_select'], function(result) {
+        extraction_select.value = result.extraction_select;
     });
 
 
@@ -76,6 +82,16 @@ window.onload = function () {
         chrome.runtime.sendMessage({ method: "BG_change_translator", data: value});
     }
 
+
+    extraction_select.onchange = changeExtraction;
+
+    function changeExtraction(e){  
+        var value = e.target.value;  
+
+        chrome.storage.local.set({"extraction_select": value}, function() {
+        });
+        
+    }
 
 
     
