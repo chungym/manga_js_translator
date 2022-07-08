@@ -4,6 +4,10 @@ function getFirstImg(){
     
     for (var i = 0, n = document.images.length; i < n; i++){
 
+        if (document.images[i].offsetParent === null){
+            continue;
+        }
+
         if (document.images[i].width * document.images[i].height > 600*800){
             return document.images[i];
         } 
@@ -151,8 +155,8 @@ window.onload = function(){
                     
 
 
-                    overlay_div.setAttribute("style","top:"+Math.round( top_offset + message.cy )+"px;"
-                        +"left:"+Math.round(left_offset + message.cx + 3)+"px;"
+                    overlay_div.setAttribute("style","top:"+Math.round( top_offset + message.cy * img.height / img.naturalHeight )+"px;"
+                        +"left:"+Math.round(left_offset + message.cx * img.width / img.naturalWidth + 3)+"px;"
                         +"max-width:"+Math.round(message.maxWidth*0.9)+"px;"
                         +"aspect-ratio:"+message.ratio.toFixed(2)+"/1;");
                     

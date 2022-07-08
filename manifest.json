@@ -24,7 +24,7 @@
   "content_scripts": [
     {
     "matches": ["*://*/*"],
-    "include_globs": ["https://mangaraw.org/*/*/*","https://exhentai.org/s/*","https://e-hentai.org/s/*","https://nhentai.net/g/*/*/*"],
+    "include_globs": ["https://mangaraw.org/*/*/*","https://exhentai.org/s/*","https://e-hentai.org/s/*","https://nhentai.net/g/*/*/*","https://www.wnacg.org/photos-view-id-*"],
     "js": ["js/content_script.js"],
     "run_at": "document_end"
     },
